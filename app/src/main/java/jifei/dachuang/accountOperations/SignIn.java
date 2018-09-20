@@ -95,7 +95,6 @@ public class SignIn extends AppCompatActivity
                 //以后记得加密存！
                 sendSignInRequest();
                 //Toast.makeText(SignIn.this,"假装你输入对了",Toast.LENGTH_SHORT).show();
-                finish();
                 }
         });
         RxPermissions rxPermissions=new RxPermissions(this);
@@ -125,9 +124,9 @@ public class SignIn extends AppCompatActivity
                         finish();
                     }
                 });
-        Toast.makeText(SignIn.this,"随便输入就行。",Toast.LENGTH_LONG).show();
+        //Toast.makeText(SignIn.this,"随便输入就行。",Toast.LENGTH_LONG).show();
     }
-    public void sendSignInRequest(){
+    private void sendSignInRequest(){
         new Thread(new Runnable()
         {
             @Override
@@ -155,9 +154,10 @@ public class SignIn extends AppCompatActivity
                         CameraActivity.editorForCamera.putString("userName",userName.getText().toString());
                         Start.editor.putString("password",password.getText().toString());
                         //注意，本手机号只是默认，实际上在用户注册时获取
-                        //Start.editor.putString("phoneNumber","123456");登录后不涉及电话号码的使用
+                        Start.editor.putString("phoneNumber","123456");
                         Start.editor.commit();
                         startActivity(new Intent(SignIn.this,MainActivity.class));
+                        finish();
                     }
                 }catch(Exception e){
                     e.printStackTrace();

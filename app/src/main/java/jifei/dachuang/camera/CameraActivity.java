@@ -58,6 +58,7 @@ public class CameraActivity extends AppCompatActivity
     {
         try
         {
+            //将拍摄的照片显示出来
             Bitmap bitmap= BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
             //photo.setImageBitmap(bitmap);
             Glide.with(this).load(bitmap).into(photo);

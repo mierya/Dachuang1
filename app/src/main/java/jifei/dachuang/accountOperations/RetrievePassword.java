@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.InputFilter;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.view.View;
 import android.widget.Button;
@@ -17,26 +18,34 @@ import android.widget.Toast;
 import jifei.dachuang.MainActivity;
 import jifei.dachuang.R;
 import jifei.dachuang.Start;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class RetrievePassword extends AppCompatActivity
 {
     int time=60;
+    private TextInputEditText phoneNum;
+    private TextInputEditText newP2;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.retrieve_password);
-        TextInputEditText phoneNum = findViewById(R.id.phoneNum);
+        phoneNum = findViewById(R.id.phoneNum);
         phoneNum.setFilters(new InputFilter[]{new InputFilter.LengthFilter(11)});//控制输入长度
         TextInputEditText checkNum = findViewById(R.id.checkNum);
         checkNum.setFilters(new InputFilter[]{new InputFilter.LengthFilter(6)});//控制输入长度
         TextInputEditText newP1 = findViewById(R.id.newP1);
         newP1.setFilters(new InputFilter[]{new InputFilter.LengthFilter(11)});//控制输入长度
-        TextInputEditText newP2 = findViewById(R.id.newP2);
+        newP2 = findViewById(R.id.newP2);
         newP2.setFilters(new InputFilter[]{new InputFilter.LengthFilter(6)});//控制输入长度
         Button getnum=findViewById(R.id.button);
+        String number = phoneNum.getText().toString();
         getnum.setOnClickListener(v->{
-            if(phoneNum.getText().toString().length() < 11){
+            if(!isMobile(number)){
                 Toast.makeText(RetrievePassword.this,"电话号码错误",Toast.LENGTH_SHORT).show();
             }
             else{
@@ -73,15 +82,58 @@ public class RetrievePassword extends AppCompatActivity
             else{
                 //当然得先存服务器端，待完善
                 //以后记得加密存！
-                Start.editor.putString("userName",newP1.getText().toString());
-                Start.editor.putString("password",newP2.getText().toString());
-                //注意，本手机号只是默认，实际上在用户注册时获取
-                Start.editor.putString("phoneNumber","12345678");
-                Start.editor.commit();
-                startActivity(new Intent(RetrievePassword.this,MainActivity.class));
-                //Toast.makeText(RetrievePassword.this,"假装你输入对了",Toast.LENGTH_SHORT).show();
-                finish();
+                sendRPwRequest();
             }
         });
+    }
+    private void sendRPwRequest(){
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try{
+                    OkHttpClient client = new OkHttpClient();
+                    RequestBody requestBody = new FormBody.Builder()
+                            .add("phone_number",phoneNum.getText().toString())
+                            .add("new_password",newP2.getText().toString())
+                            .build();
+                    Request request = new Request.Builder()
+                            .url("http://118.24.100.115:8000"+"/passwd/forget")
+                            .post(requestBody)
+                            .build();
+                    Response response = client.newCall(request).execute();
+                    String responseData = response.body().string();
+                    if(responseData.equals("找不到该预留号码")){
+                        Toast.makeText(RetrievePassword.this ,responseData,Toast.LENGTH_SHORT);
+                    }
+                    else{
+                        Start.editor.putString("password",newP2.getText().toString());
+                        //注意，本手机号只是默认，实际上在用户注册时获取
+                        Start.editor.putString("phoneNumber","123456");
+                        Start.editor.commit();
+                        startActivity(new Intent(RetrievePassword.this,MainActivity.class));
+                        finish();
+                    }
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+    public static boolean isMobile(String number) {
+    /*
+    移动：134、135、136、137、138、139、150、151、152、157(TD)、158、159、178(新)、182、184、187、188
+    联通：130、131、132、152、155、156、185、186
+    电信：133、153、170、173、177、180、181、189、（1349卫通）
+    总结起来就是第一位必定为1，第二位必定为3或5或8，其他位置的可以为0-9
+    */
+        String num = "[1][34578]\\d{9}";//"[1]"代表第1位为数字1，"[34578]"代表第二位可以为3、4、5、7、8中的一个，"\\d{9}"代表后面是可以是0～9的数字，有9位。
+        if (TextUtils.isEmpty(number)) {
+            return false;
+        } else {
+            //matches():字符串是否在给定的正则表达式匹配
+            return number.matches(num);
+        }
     }
 }
