@@ -97,8 +97,7 @@ public class SignIn extends AppCompatActivity
                 }
         });
         RxPermissions rxPermissions=new RxPermissions(this);
-        rxPermissions.requestEachCombined(Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        rxPermissions.requestEachCombined(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .subscribe(permission ->
                 {
                     if (permission.granted)
@@ -148,8 +147,8 @@ public class SignIn extends AppCompatActivity
                     //注意，本手机号只是默认，实际上在用户注册时获取
                     Start.editor.putString("phoneNumber","123456");
                     Start.editor.commit();
-                    CameraActivity.editorForCamera.putString("userName",userName.getText().toString());
-                    CameraActivity.editorForCamera.commit();
+//                    CameraActivity.editorForCamera.putString("userName",userName.getText().toString());
+//                    CameraActivity.editorForCamera.commit();
                     startActivity(new Intent(SignIn.this,MainActivity.class));
                     Toast.makeText(SignIn.this ,"登录成功",Toast.LENGTH_SHORT).show();
                     finish();

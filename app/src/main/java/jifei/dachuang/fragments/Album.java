@@ -41,7 +41,8 @@ public class Album extends Fragment
     {
         File file=new File(Environment.getExternalStorageDirectory().getPath()+"/Dachuang/"+ Start.sp.getString("phoneNumber","12345678")+File.separator);
         allFiles = file.listFiles();
-
+        if(allFiles==null)
+            allFiles = new File[0];
         View view=inflater.inflate(R.layout.album,container,false);
         ExtendedViewPager mViewPager = view.findViewById(R.id.preview);
         mViewPager.setAdapter(new TouchImageAdapter());

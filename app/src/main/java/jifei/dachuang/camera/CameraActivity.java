@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.util.Date;
 
 import jifei.dachuang.R;
+import jifei.dachuang.Start;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -43,6 +44,7 @@ public class CameraActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera);
         photo=findViewById(R.id.photo);
+//        editorForCamera=getSharedPreferences("date",MODE_PRIVATE).edit();
         Button camera_back = findViewById(R.id.camera_back);
         camera_back.setOnClickListener(v -> {
             finish();
@@ -57,6 +59,7 @@ public class CameraActivity extends AppCompatActivity
         camera_verify.setOnClickListener(v -> {
             sendPhotoToServer();
         });
+
     }
 
     @Override
@@ -85,7 +88,7 @@ public class CameraActivity extends AppCompatActivity
                 try
                 {
                     OkHttpClient client = new OkHttpClient();
-                    String str = editorForCamera.toString() + formatter.format(curDate);//传至服务器的文件名为username+时间
+                    String str = Start.sp.getString("userName","") + formatter.format(curDate);//传至服务器的文件名为username+时间
                     RequestBody image = RequestBody.create(MediaType.parse("image/jpg"), output);// MediaType.parse() 里面是上传的文件类型。
                     RequestBody requestBody = new MultipartBody.Builder()
                             .setType(MultipartBody.FORM)
