@@ -119,7 +119,7 @@ public class RetrievePassword extends AppCompatActivity
                     e.printStackTrace();
                 }
             }
-        });
+        }).start();
     }
     public static boolean isMobile(String number) {
     /*

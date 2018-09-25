@@ -94,7 +94,6 @@ public class SignIn extends AppCompatActivity
                 //当然得先存服务器端，待完善
                 //以后记得加密存！
                 sendSignInRequest();
-                //Toast.makeText(SignIn.this,"假装你输入对了",Toast.LENGTH_SHORT).show();
                 }
         });
         RxPermissions rxPermissions=new RxPermissions(this);
@@ -124,46 +123,41 @@ public class SignIn extends AppCompatActivity
                         finish();
                     }
                 });
-        //Toast.makeText(SignIn.this,"随便输入就行。",Toast.LENGTH_LONG).show();
     }
     private void sendSignInRequest(){
-        new Thread(new Runnable()
+        new Thread(() ->
         {
-            @Override
-            public void run()
-            {
-                try{
-                    OkHttpClient client = new OkHttpClient();
-                    RequestBody requestBody = new FormBody.Builder()
-                            .add("account",userName.getText().toString())
-                            .add("password",password.getText().toString())
-                            .build();
-                    Request request = new Request.Builder()
-                            .url("http://118.24.100.115:8000"+"/client/login")
-                            .post(requestBody)
-                            .build();
-                    Response response = client.newCall(request).execute();
-                    String responseData = response.body().string();
-                    if(responseData.equals("密码错误！")){
-                        Toast.makeText(SignIn.this ,responseData,Toast.LENGTH_SHORT);
-                    }else if(responseData.equals("该用户名未注册")){
-                        Toast.makeText(SignIn.this ,responseData,Toast.LENGTH_SHORT);
-                    }
-                    else{
-                        Start.editor.putString("userName",userName.getText().toString());
-                        CameraActivity.editorForCamera.putString("userName",userName.getText().toString());
-                        Start.editor.putString("password",password.getText().toString());
-                        //注意，本手机号只是默认，实际上在用户注册时获取
-                        Start.editor.putString("phoneNumber","123456");
-                        Start.editor.commit();
-                        startActivity(new Intent(SignIn.this,MainActivity.class));
-                        finish();
-                    }
-                }catch(Exception e){
-                    e.printStackTrace();
+            try{
+                OkHttpClient client = new OkHttpClient();
+                RequestBody requestBody = new FormBody.Builder()
+                        .add("account",userName.getText().toString())
+                        .add("password",password.getText().toString())
+                        .build();
+                Request request = new Request.Builder()
+                        .url("http://118.24.100.115:8000"+"/client/login")
+                        .post(requestBody)
+                        .build();
+                Response response = client.newCall(request).execute();
+                String responseData = response.body().string();
+                if(responseData.equals("密码错误！") || responseData.equals("该用户名未注册"))
+                {
+                    Toast.makeText(SignIn.this, responseData, Toast.LENGTH_SHORT).show();
+                }else{
+                    Start.editor.putString("userName",userName.getText().toString());
+                    Start.editor.putString("password",password.getText().toString());
+                    //注意，本手机号只是默认，实际上在用户注册时获取
+                    Start.editor.putString("phoneNumber","123456");
+                    Start.editor.commit();
+                    CameraActivity.editorForCamera.putString("userName",userName.getText().toString());
+                    CameraActivity.editorForCamera.commit();
+                    startActivity(new Intent(SignIn.this,MainActivity.class));
+                    Toast.makeText(SignIn.this ,"登录成功",Toast.LENGTH_SHORT).show();
+                    finish();
                 }
+            }catch(Exception e){
+                e.printStackTrace();
             }
-        });
+        }).start();
     }
 
 }

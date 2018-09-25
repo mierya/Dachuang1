@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -38,7 +39,7 @@ public class Guide extends AppCompatActivity implements ViewPager.OnPageChangeLi
     private ImageView []pointArray;
 
     //最后一页的按钮
-    private ImageButton start;
+    private Button start;
     private LinearLayout.LayoutParams layoutParams;
 
     @Override

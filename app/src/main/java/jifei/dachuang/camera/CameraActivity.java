@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -16,10 +17,7 @@ import com.bumptech.glide.Glide;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 import jifei.dachuang.R;
 import okhttp3.MediaType;
@@ -45,12 +43,20 @@ public class CameraActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera);
         photo=findViewById(R.id.photo);
+        Button camera_back = findViewById(R.id.camera_back);
+        camera_back.setOnClickListener(v -> {
+            finish();
+        });
         output=new File(getExternalCacheDir(),"cache.jpg");//此处可能不适配7.0及以上系统，以后加上内容提供器
         uri=Uri.fromFile(output);
         Intent intent=new Intent("android.media.action.IMAGE_CAPTURE");
         intent.putExtra(MediaStore.EXTRA_OUTPUT,uri);
         intent.putExtra("android.intent.extras.CAMERA_FACING", 1);//调用前置摄像头
         startActivityForResult(intent,TAKEPHOTO);
+        Button camera_verify = findViewById(R.id.camera_verify);
+        camera_verify.setOnClickListener(v -> {
+            sendPhotoToServer();
+        });
     }
 
     @Override
@@ -91,12 +97,12 @@ public class CameraActivity extends AppCompatActivity
                             .build();
                     Response response = client.newCall(request).execute();
                     String responseData = response.body().string();
-                    Toast.makeText(CameraActivity.this ,responseData,Toast.LENGTH_SHORT);
+                    Toast.makeText(CameraActivity.this ,responseData,Toast.LENGTH_SHORT).show();
                 } catch (Exception e)
                 {
                     e.printStackTrace();
                 }
             }
-        });
+        }).start();
     }
 }

@@ -147,11 +147,11 @@ public class Register extends AppCompatActivity
                                 .build();
                         Response response = client.newCall(request).execute();
                         String responseData = response.body().string();
-                        Toast.makeText(Register.this ,responseData,Toast.LENGTH_SHORT);
+                        Toast.makeText(Register.this ,responseData,Toast.LENGTH_SHORT).show();
                     }catch(Exception e){
                         e.printStackTrace();
                     }
                 }
-            });
+            }).start();
         }
 }
