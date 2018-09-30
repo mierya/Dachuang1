@@ -245,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements
                     menuItem.setVisible(true);
                 }
                 replaceFragment(new Album());
-                Toast.makeText(MainActivity.this,"请点一下右上角！",Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this,"请点一下右上角！",Toast.LENGTH_SHORT).show();
                 break;
             }
 

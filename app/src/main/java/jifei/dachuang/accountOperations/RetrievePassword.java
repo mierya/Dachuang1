@@ -6,13 +6,8 @@ import android.os.CountDownTimer;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputFilter;
-import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.TextUtils;
-import android.text.style.ClickableSpan;
-import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import jifei.dachuang.MainActivity;
@@ -43,12 +38,9 @@ public class RetrievePassword extends AppCompatActivity
         newP2 = findViewById(R.id.newP2);
         newP2.setFilters(new InputFilter[]{new InputFilter.LengthFilter(6)});//控制输入长度
         Button getnum=findViewById(R.id.button);
-        String number = phoneNum.getText().toString();
+        String number = phoneNum.getText().toString().trim();
         getnum.setOnClickListener(v->{
-            if(!isMobile(number)){
-                Toast.makeText(RetrievePassword.this,"电话号码错误",Toast.LENGTH_SHORT).show();
-            }
-            else{
+            if(isEmail(number)){
                 getnum.setClickable(false);
                 new CountDownTimer(61*1000,1000)
                 {
@@ -65,6 +57,10 @@ public class RetrievePassword extends AppCompatActivity
                     }
                 }.start();
 
+
+            }
+            else{
+                Toast.makeText(RetrievePassword.this,"电话号码错误",Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -83,15 +79,15 @@ public class RetrievePassword extends AppCompatActivity
                 //当然得先存服务器端，待完善
                 //以后记得加密存！
                 sendRPwRequest();
+
             }
         });
     }
-    private void sendRPwRequest(){
-        new Thread(new Runnable()
+
+
+   public void sendRPwRequest(){
+        new Thread(() ->
         {
-            @Override
-            public void run()
-            {
                 try{
                     OkHttpClient client = new OkHttpClient();
                     RequestBody requestBody = new FormBody.Builder()
@@ -104,31 +100,36 @@ public class RetrievePassword extends AppCompatActivity
                             .build();
                     Response response = client.newCall(request).execute();
                     String responseData = response.body().string();
-                    if(responseData.equals("找不到该预留号码")){
-                        Toast.makeText(RetrievePassword.this ,responseData,Toast.LENGTH_SHORT);
-                    }
-                    else{
-                        Start.editor.putString("password",newP2.getText().toString());
-                        //注意，本手机号只是默认，实际上在用户注册时获取
-                        Start.editor.putString("phoneNumber","123456");
-                        Start.editor.commit();
-                        startActivity(new Intent(RetrievePassword.this,MainActivity.class));
-                        finish();
-                    }
+                    RetrievePassword.this.runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            if(!responseData.contains("password")){
+                                Toast.makeText(RetrievePassword.this ,responseData,Toast.LENGTH_SHORT).show();
+                            }
+                            else{
+                                Start.editor.putString("password",newP2.getText().toString());
+                                //注意，本手机号只是默认，实际上在用户注册时获取
+                                Start.editor.putString("phoneNumber","123456");
+                                Start.editor.commit();
+                                startActivity(new Intent(RetrievePassword.this,MainActivity.class));
+                                finish();
+                            }
+                        }
+                    });
+
                 }catch(Exception e){
                     e.printStackTrace();
                 }
-            }
         }).start();
     }
-    public static boolean isMobile(String number) {
+
+    public static boolean isEmail(String number) {
     /*
-    移动：134、135、136、137、138、139、150、151、152、157(TD)、158、159、178(新)、182、184、187、188
-    联通：130、131、132、152、155、156、185、186
-    电信：133、153、170、173、177、180、181、189、（1349卫通）
-    总结起来就是第一位必定为1，第二位必定为3或5或8，其他位置的可以为0-9
+    邮箱验证
     */
-        String num = "[1][34578]\\d{9}";//"[1]"代表第1位为数字1，"[34578]"代表第二位可以为3、4、5、7、8中的一个，"\\d{9}"代表后面是可以是0～9的数字，有9位。
+        String num = "^([a-z0-9A-Z]+[-|\\\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\\\.)+[a-zA-Z]{2,}$";//"[1]"代表第1位为数字1，"[34578]"代表第二位可以为3、4、5、7、8中的一个，"\\d{9}"代表后面是可以是0～9的数字，有9位。
         if (TextUtils.isEmpty(number)) {
             return false;
         } else {

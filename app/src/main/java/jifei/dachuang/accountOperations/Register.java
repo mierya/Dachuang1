@@ -16,11 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.support.design.widget.TextInputEditText;
 
-import org.litepal.crud.DataSupport;
-import org.litepal.tablemanager.Connector;
 
-import java.util.List;
-
+import jifei.dachuang.MainActivity;
 import jifei.dachuang.R;
 import jifei.dachuang.Start;
 import okhttp3.FormBody;
@@ -33,7 +30,6 @@ public class Register extends AppCompatActivity
 {
 
     private int flag = -1;
-    private boolean flag1 = false;
     private boolean flag2=false;
     private TextInputEditText r_userName;
     private TextInputEditText r_password;
@@ -64,7 +60,6 @@ public class Register extends AppCompatActivity
         }, 0, st1.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
         agreement.setText(ss1);
         agreement.setMovementMethod(LinkMovementMethod.getInstance());//阅读后应返回至注册页面
-        //注册按钮
         RadioGroup radioGroup = (RadioGroup)findViewById(R.id.radioGroup);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -79,6 +74,7 @@ public class Register extends AppCompatActivity
                 }
             }
         });
+        //注册按钮
         Button rbutton = findViewById(R.id.register_button);
         rbutton.setOnClickListener(v ->
         {
@@ -92,24 +88,14 @@ public class Register extends AppCompatActivity
             } else if (!(r_password.getText().toString().trim()).equals(rr_password.getText().toString().trim()))
             {
                 Toast.makeText(Register.this, "两次密码输入不一致", Toast.LENGTH_SHORT).show();
-            }else if(flag1){
-                Toast.makeText(Register.this,"该用户名已经注册",Toast.LENGTH_SHORT).show();
             }else if(flag == R.id.disagree){
                 Toast.makeText(Register.this, "注册即代表同意该协议条款", Toast.LENGTH_SHORT).show();
             }
-        //当然得先存服务器端，待完善
-        //以后记得加密存！
+
             else
             {
-                sendRegistRequest();
-                Start.editor.putString("userName",r_userName.getText().toString());
-                Start.editor.putString("password",r_password.getText().toString());
-                //注意，本手机号只是默认，实际上在用户注册时获取
-                Start.editor.putString("phoneNumber","123456");
-                Start.editor.commit();
-                startActivity(new Intent(Register.this, SignIn.class));
-                //Toast.makeText(Register.this, "注册成功", Toast.LENGTH_SHORT).show();
-                finish();
+                //向服务器发送注册请求
+                sendRegisterRequest();
             }
         });
     }
@@ -128,30 +114,46 @@ public class Register extends AppCompatActivity
         }
 
     }
-        public void sendRegistRequest(){
-            new Thread(new Runnable()
-            {
-                @Override
-                public void run()
+
+    private void sendRegisterRequest(){
+        new Thread(() ->
+        {
+            try{
+                OkHttpClient client = new OkHttpClient();
+                RequestBody requestBody = new FormBody.Builder()
+                        .add("account",r_userName.getText().toString())
+                        .add("password",r_password.getText().toString())
+                        .add("phone_number","123456")
+                        .build();
+                Request request = new Request.Builder()
+                        .url("http://118.24.100.115:8000"+"/client/register")
+                        .post(requestBody)
+                        .build();
+                Response response = client.newCall(request).execute();
+                String responseData = response.body().string();
+                Register.this.runOnUiThread(new Runnable()
                 {
-                    try{
-                        OkHttpClient client = new OkHttpClient();
-                        RequestBody requestBody = new FormBody.Builder()
-                                .add("account",r_userName.getText().toString())
-                                .add("password",r_password.getText().toString())
-                                .add("phone_number","123456")
-                                .build();
-                        Request request = new Request.Builder()
-                                .url("http://118.24.100.115:8000"+" /client/register")
-                                .post(requestBody)
-                                .build();
-                        Response response = client.newCall(request).execute();
-                        String responseData = response.body().string();
-                        Toast.makeText(Register.this ,responseData,Toast.LENGTH_SHORT).show();
-                    }catch(Exception e){
-                        e.printStackTrace();
+                    @Override
+                    public void run()
+                    {
+                        if(!responseData.contains("account") )
+                        {
+                            Toast.makeText(Register.this, "注册失败", Toast.LENGTH_SHORT).show();
+                        }else{
+                            Start.editor.putString("userName",r_userName.getText().toString());
+                            Start.editor.putString("password",r_password.getText().toString());
+                            //注意，本手机号只是默认，实际上在用户注册时获取
+                            Start.editor.putString("phoneNumber","123456");
+                            Start.editor.commit();
+                            Toast.makeText(Register.this ,"注册成功",Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(Register.this,MainActivity.class));
+                            finish();
+                        }
                     }
-                }
-            }).start();
-        }
+                });
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }).start();
+    }
 }

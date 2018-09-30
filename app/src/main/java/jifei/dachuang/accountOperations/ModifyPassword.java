@@ -3,17 +3,14 @@ package jifei.dachuang.accountOperations;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import jifei.dachuang.MainActivity;
 import jifei.dachuang.R;
 import jifei.dachuang.Start;
-import jifei.dachuang.camera.CameraActivity;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -46,7 +43,6 @@ public class ModifyPassword extends AppCompatActivity
                     editor.putString("pwd", new_pwd1.getText().toString());
                     editor.commit();
                     sendMPwRequest();
-                    finish();
                 } else
                 {
                     Toast.makeText(this, "两次密码不匹配", Toast.LENGTH_SHORT).show();
@@ -57,7 +53,7 @@ public class ModifyPassword extends AppCompatActivity
             }
         });
     }
-    private void sendMPwRequest(){
+    public void sendMPwRequest(){
         new Thread(new Runnable()
         {
             @Override
@@ -74,11 +70,22 @@ public class ModifyPassword extends AppCompatActivity
                             .build();
                     Response response = client.newCall(request).execute();
                     String responseData = response.body().string();
-                    Toast.makeText(ModifyPassword.this ,responseData,Toast.LENGTH_SHORT);
+                    ModifyPassword.this.runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Toast.makeText(ModifyPassword.this ,"密码修改成功",Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(ModifyPassword.this,MainActivity.class));
+                            finish();
+                        }
+                    });
+
                 }catch(Exception e){
                     e.printStackTrace();
                 }
             }
         }).start();
     }
+
 }
